@@ -4,5 +4,7 @@ hey everyone. I first from only upload image from stupid private mode something 
 so...this card before finish day...
 so send to message from two new code from me but from custom card have to from fix it
 
+here your want to Download file was done on Json.
+https://drive.google.com/file/d/1F6eFUliyGQWfpUkEyKgSIeocmV0JAUaq/view?usp=drive_link 
 
 ©ABC-A Toei Animation
