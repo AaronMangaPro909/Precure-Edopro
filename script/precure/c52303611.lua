@@ -1,16 +1,10 @@
 local s, id = GetID()
 
 function s.initial_effect(c)
-    -- Enable Pendulum mechanics
+    -- Pendulum Effect
     Pendulum.AddProcedure(c)
-    
-    -- Max 10 Spell Counters permitted on this card (0x1 is standard Spell Counter)
     c:EnableCounterPermit(0x1, LOCATION_PZONE + LOCATION_MZONE)
-    
-    -------------------------------------------------------------------------
-    -- PENDULUM EFFECTS
-    -------------------------------------------------------------------------
-    -- P-Effect 1: Place Spell Counter when a Spell/Trap card resolves
+  
     local e1 = Effect.CreateEffect(c)
     e1:SetType(EFFECT_TYPE_FIELD + EFFECT_TYPE_CONTINUOUS)
     e1:SetProperty(EFFECT_FLAG_DELAY)
@@ -19,21 +13,18 @@ function s.initial_effect(c)
     e1:SetOperation(s.ctop)
     c:RegisterEffect(e1)
     
-    -- P-Effect 2: Remove 1 counter -> Change a monster's Level to 5, 7, or 10
     local e2 = Effect.CreateEffect(c)
     e2:SetDescription(aux.Stringid(id, 0))
     e2:SetType(EFFECT_TYPE_IGNITION)
     e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
     e2:SetRange(LOCATION_PZONE)
     e2:SetCost(s.lvcost)
+    e2:SetCountLimit (4)   
     e2:SetTarget(s.lvtg)
     e2:SetOperation(s.lvop)
     c:RegisterEffect(e2)
     
-    -------------------------------------------------------------------------
-    -- MONSTER EFFECTS
-    -------------------------------------------------------------------------
-    -- M-Effect 1: Special Summon from hand by discarding 1 card
+    -- Monster Effect
     local e3 = Effect.CreateEffect(c)
     e3:SetDescription(aux.Stringid(id, 1))
     e3:SetType(EFFECT_TYPE_FIELD)
@@ -45,14 +36,12 @@ function s.initial_effect(c)
     e3:SetOperation(s.hspop)
     c:RegisterEffect(e3)
     
-    -- M-Effect 2: Must tribute 2 Level 7+ monsters if Normal Summoned
     local e4 = Effect.CreateEffect(c)
     e4:SetType(EFFECT_TYPE_SINGLE)
     e4:SetCode(EFFECT_TRIBUTE_LIMIT)
     e4:SetValue(s.tlimit)
     c:RegisterEffect(e4)
     
-    -- M-Effect 3: Once per turn gain 500 ATK
     local e5 = Effect.CreateEffect(c)
     e5:SetDescription(aux.Stringid(id, 2))
     e5:SetCategory(CATEGORY_ATKCHANGE)
@@ -61,8 +50,7 @@ function s.initial_effect(c)
     e5:SetCountLimit(1)
     e5:SetOperation(s.atkop)
     c:RegisterEffect(e5)
-    
-    -- M-Effect 4: Monsters cannot be destroyed by battle
+ 
     local e6 = Effect.CreateEffect(c)
     e6:SetType(EFFECT_TYPE_FIELD)
     e6:SetCode(EFFECT_INDESTRUCTABLE_BATTLE)
@@ -71,12 +59,10 @@ function s.initial_effect(c)
     e6:SetValue(1)
     c:RegisterEffect(e6)
     
-    -- M-Effect 5: Reflect battle damage involving your monsters
     local e7 = e6:Clone()
     e7:SetCode(EFFECT_REFLECT_BATTLE_DAMAGE)
     c:RegisterEffect(e7)
     
-    -- M-Effect 6: Once per turn Quick Effect -> Negate & Destroy
     local e8 = Effect.CreateEffect(c)
     e8:SetDescription(aux.Stringid(id, 3))
     e8:SetCategory(CATEGORY_NEGATE + CATEGORY_DESTROY)
@@ -91,9 +77,6 @@ function s.initial_effect(c)
     c:RegisterEffect(e8)
 end
 
--- =========================================================================
--- PENDULUM EFFECT: Spell Counter Placement
--- =========================================================================
 function s.ctop(e, tp, eg, ep, ev, re, r, rp)
     local c = e:GetHandler()
     -- Only add counters if the activated item was a Spell or Trap, and this card has room (< 10)
@@ -102,9 +85,6 @@ function s.ctop(e, tp, eg, ep, ev, re, r, rp)
     end
 end
 
--- =========================================================================
--- PENDULUM EFFECT: Level Changing Mechanics
--- =========================================================================
 function s.lvcost(e, tp, eg, ep, ev, re, r, rp, chk)
     if chk == 0 then return e:GetHandler():IsCanRemoveCounter(tp, 0x1, 1, REASON_COST) end
     e:GetHandler():RemoveCounter(tp, 0x1, 1, REASON_COST)
@@ -119,7 +99,6 @@ end
 function s.lvop(e, tp, eg, ep, ev, re, r, rp)
     local tc = Duel.GetFirstTarget()
     if tc and tc:IsRelateToEffect(e) and tc:IsFaceup() then
-        -- Multi-choice Level declaration menu
         local op = Duel.SelectOption(tp, aux.Stringid(id, 4), aux.Stringid(id, 5), aux.Stringid(id, 6)) -- Options: 5, 7, 10
         local lv = 5
         if op == 1 then lv = 7 end
@@ -134,9 +113,7 @@ function s.lvop(e, tp, eg, ep, ev, re, r, rp)
     end
 end
 
--- =========================================================================
--- MONSTER EFFECT: Special Summon / Tribute Settings
--- =========================================================================
+--Monster Effect
 function s.hspcon(e, c)
     if c == nil then return true end
     local tp = c:GetControler()
@@ -170,9 +147,6 @@ function s.tlimit(e, c)
     return c:IsLevelAbove(7)
 end
 
--- =========================================================================
--- MONSTER EFFECT: Ignition ATK Boost
--- =========================================================================
 function s.atkop(e, tp, eg, ep, ev, re, r, rp)
     local c = e:GetHandler()
     if c:IsRelateToEffect(e) and c:IsFaceup() then
@@ -185,9 +159,6 @@ function s.atkop(e, tp, eg, ep, ev, re, r, rp)
     end
 end
 
--- =========================================================================
--- MONSTER EFFECT: Quick Negation Sequence
--- =========================================================================
 function s.negcon(e, tp, eg, ep, ev, re, r, rp)
     return rp ~= tp and Duel.IsChainNegatable(ev)
 end
