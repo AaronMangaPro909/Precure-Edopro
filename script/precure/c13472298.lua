@@ -1,27 +1,26 @@
+-- Cure Evolution
 local s, id = GetID()
 
 function s.initial_effect(c)
-    -- Continuous Spell basic activation link
+
     local e1 = Effect.CreateEffect(c)
     e1:SetType(EFFECT_TYPE_ACTIVATE)
     e1:SetCode(EVENT_FREE_CHAIN)
     c:RegisterEffect(e1)
 
-    -- Rules text: This card is also always treated as "Cure Change"
     local e0 = Effect.CreateEffect(c)
     e0:SetType(EFFECT_TYPE_SINGLE)
     e0:SetProperty(EFFECT_FLAG_CANNOT_DISABLE + EFFECT_FLAG_UNCOPYABLE)
     e0:SetCode(EFFECT_CHANGE_CODE)
-    e0:SetValue(13472298) -- !!! REPLACE XXXXXXXX with the 8-digit ID of "Cure Change"
+    e0:SetValue(13472298)
     c:RegisterEffect(e0)
     
-    -- Effect 1: Send 1 "Precure" to GY -> Special Summon 1 from Extra Deck with the same name
     local e2 = Effect.CreateEffect(c)
     e2:SetDescription(aux.Stringid(id, 0))
     e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
     e2:SetType(EFFECT_TYPE_IGNITION)
     e2:SetRange(LOCATION_SZONE)
-    e2:SetCountLimit(1, XXXXXXXX) -- !!! HOPT shared across the name of "Cure Change"
+    e2:SetCountLimit(1, XXXXXXXX)
     e2:SetCost(s.cost)
     e2:SetTarget(s.target)
     e2:SetOperation(s.activate)
