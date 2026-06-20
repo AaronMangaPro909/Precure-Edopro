@@ -1,7 +1,7 @@
 -- Cure Precious - Party Up Style
 local s, id = GetID()
 
-local CARD_CURE_PRECIOUS = 16116630 -- !! CHANGE THIS !! Replace with Cure Precious's ID
+local CARD_CURE_PRECIOUS = 16116630
 
 function s.initial_effect(c)
     c:EnableReviveLimit()
@@ -26,6 +26,7 @@ function s.initial_effect(c)
     e2:SetCondition(s.thcon)
     e2:SetTarget(s.thtg)
     e2:SetOperation(s.thop)
+    e2:SetCountLimit (1)
     c:RegisterEffect(e2)
 
     local e3 = Effect.CreateEffect(c)
