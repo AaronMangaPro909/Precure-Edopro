@@ -53,7 +53,7 @@ function s.atkval(e, c)
 end
 
 function s.descost(e, tp, eg, ep, ev, re, r, rp, chk)
-    if chk == 0 then return e:GetHandler():IsCanRemoveCounter(tp, 0x1, 1, REASON_COST) end
+    if chk == 0 then return e:GetHandler():IsCanRemoveCounter(tp, 0x8fc, 1, REASON_COST) end
     e:GetHandler():RemoveCounter(tp, 0x8fc, 1, REASON_COST)
 end
 
