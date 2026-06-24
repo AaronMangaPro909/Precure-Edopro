@@ -2,7 +2,7 @@
 local s, id = GetID()
 
 function s.initial_effect(c)
-    c:EnableCounterPermit(0x1)
+    c:EnableCounterPermit(0x8fc)
     
     local e1 = Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id, 0))
@@ -38,7 +38,7 @@ end
 
 function s.addcttg(e, tp, eg, ep, ev, re, r, rp, chk)
     if chk == 0 then return true end
-    Duel.SetOperationInfo(0, CATEGORY_COUNTER, nil, 1, 0, 0x1)
+    Duel.SetOperationInfo(0, CATEGORY_COUNTER, nil, 1, 0, 0x8fc)
 end
 
 function s.addctop(e, tp, eg, ep, ev, re, r, rp)
@@ -49,12 +49,12 @@ function s.addctop(e, tp, eg, ep, ev, re, r, rp)
 end
 
 function s.atkval(e, c)
-    return c:GetCounter(0x1) * 300
+    return c:GetCounter(0x8fc) * 300
 end
 
 function s.descost(e, tp, eg, ep, ev, re, r, rp, chk)
     if chk == 0 then return e:GetHandler():IsCanRemoveCounter(tp, 0x1, 1, REASON_COST) end
-    e:GetHandler():RemoveCounter(tp, 0x1, 1, REASON_COST)
+    e:GetHandler():RemoveCounter(tp, 0x8fc, 1, REASON_COST)
 end
 
 function s.destg(e, tp, eg, ep, ev, re, r, rp, chk, chcl)
