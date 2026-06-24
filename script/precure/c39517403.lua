@@ -44,7 +44,7 @@ end
 function s.addctop(e, tp, eg, ep, ev, re, r, rp)
     local c = e:GetHandler()
     if c:IsRelateToEffect(e) then
-        c:AddCounter(0x1, 1)
+        c:AddCounter(0x8fc, 1)
     end
 end
 
