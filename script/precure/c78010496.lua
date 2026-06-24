@@ -7,9 +7,8 @@ local CARD_CURE_ZUKYOON  = 19379373
 local CARD_CURE_KISS     = 60519833
 
 
-
 function s.initial_effect(c)
-    -- Activate Spell: Send materials from Hand/Field -> Special Summon from Deck
+    -- Activate: Send from hand/field -> Special Summon from Hand/Deck
     local e1 = Effect.CreateEffect(c)
     e1:SetCategory(CATEGORY_SPECIAL_SUMMON + CATEGORY_TOGRAVE)
     e1:SetType(EFFECT_TYPE_ACTIVATE)
@@ -18,9 +17,9 @@ function s.initial_effect(c)
     e1:SetOperation(s.activate)
     c:RegisterEffect(e1)
     
-    -- Second Effect: If sent to GY by card effect, Set itself
+    -- Continuous: If sent to GY by card effect, Set itself
     local e2 = Effect.CreateEffect(c)
-    e2:SetDescription(aux.Stringid(id, 1))
+    e2:SetDescription(aux.Stringid(id, 3))
     e2:SetType(EFFECT_TYPE_SINGLE + EFFECT_TYPE_TRIGGER_O)
     e2:SetCode(EVENT_TO_GRAVE)
     e2:SetProperty(EFFECT_FLAG_DELAY)
@@ -30,101 +29,126 @@ function s.initial_effect(c)
     c:RegisterEffect(e2)
 end
 
--- Filter conditions for materials on Hand or Field
-function s.matfilter(c)
-    return (c:IsCode(CARD_PURIRUN) or c:IsCode(CARD_MERORON)) and c:IsAbleToGrave()
+-- Material Filters (Hand or Field)
+function s.matfilter(c, code)
+    return c:IsCode(code) and c:IsAbleToGrave()
 end
 
--- Check if specific monsters are available in the Deck to be Special Summoned
-function s.spfilter(c, code, e, tp)
-    return c:IsCode(code) and c:IsCanBeSpecialSummoned(e, SUMMON_TYPE_SPECIAL, tp, true, false)
+-- Summon Filters (Hand or Deck only, NO GY)
+function s.spfilter(c, e, tp, code)
+    return c:IsCode(code) and c:IsCanBeSpecialSummoned(e, SUMMON_TYPE_SPECIAL, tp, true, false, POS_FACEUP, tp, LOCATION_HAND + LOCATION_DECK)
+end
+
+-- Condition Checks for each option
+function s.checkZukyoon(e, tp)
+    return Duel.GetLocationCount(tp, LOCATION_MZONE) > 0
+        and Duel.IsExistingMatchingCard(s.matfilter, tp, LOCATION_HAND + LOCATION_MZONE, 0, 1, nil, CARD_PURIRUN)
+        and Duel.IsExistingMatchingCard(s.spfilter, tp, LOCATION_HAND + LOCATION_DECK, 0, 1, nil, e, tp, CARD_CURE_ZUKYOON)
+end
+
+function s.checkKiss(e, tp)
+    return Duel.GetLocationCount(tp, LOCATION_MZONE) > 0
+        and Duel.IsExistingMatchingCard(s.matfilter, tp, LOCATION_HAND + LOCATION_MZONE, 0, 1, nil, CARD_MERORON)
+        and Duel.IsExistingMatchingCard(s.spfilter, tp, LOCATION_HAND + LOCATION_DECK, 0, 1, nil, e, tp, CARD_CURE_KISS)
+end
+
+function s.checkBoth(e, tp)
+    -- If using from hand, needs 2 zones. If using from field, zone counts dynamically adapt.
+    if Duel.IsPlayerAffectedByEffect(tp, CARD_AURA_WHIRLWIND) then return false end -- Safety check for zone locking
+    
+    local hand_purirun = Duel.IsExistingMatchingCard(s.matfilter, tp, LOCATION_HAND, 0, 1, nil, CARD_PURIRUN)
+    local field_purirun = Duel.IsExistingMatchingCard(s.matfilter, tp, LOCATION_MZONE, 0, 1, nil, CARD_PURIRUN)
+    local hand_meroron = Duel.IsExistingMatchingCard(s.matfilter, tp, LOCATION_HAND, 0, 1, nil, CARD_MERORON)
+    local field_meroron = Duel.IsExistingMatchingCard(s.matfilter, tp, LOCATION_MZONE, 0, 1, nil, CARD_MERORON)
+    
+    -- Needs at least 1 of each material
+    local has_mats = (hand_purirun or field_purirun) and (hand_meroron or field_meroron)
+    if not has_mats then return false end
+    
+    -- Standard verification for 2 open zones
+    local ft = Duel.GetLocationCount(tp, LOCATION_MZONE)
+    if field_purirun then ft = ft + 1 end
+    if field_meroron then ft = ft + 1 end
+    if Duel.IsExistingMatchingCard(s.matfilter, tp, LOCATION_MZONE, 0, 1, nil, CARD_PURIRUN) 
+       and Duel.IsExistingMatchingCard(s.matfilter, tp, LOCATION_MZONE, 0, 1, nil, CARD_MERORON) then
+       ft = Duel.GetLocationCount(tp, LOCATION_MZONE) + 2
+    end
+
+    return ft >= 2 
+        and Duel.IsExistingMatchingCard(s.spfilter, tp, LOCATION_HAND + LOCATION_DECK, 0, 1, nil, e, tp, CARD_CURE_ZUKYOON)
+        and Duel.IsExistingMatchingCard(s.spfilter, tp, LOCATION_HAND + LOCATION_DECK, 0, 1, nil, e, tp, CARD_CURE_KISS)
 end
 
 function s.target(e, tp, eg, ep, ev, re, r, rp, chk)
     if chk == 0 then
-        local g = Duel.GetMatchingGroup(s.matfilter, tp, LOCATION_HAND + LOCATION_MZONE, 0, nil)
-        
-        local has_purirun = g:IsExists(Card.IsCode, 1, nil, CARD_PURIRUN)
-        local has_meroron = g:IsExists(Card.IsCode, 1, nil, CARD_MERORON)
-        
-        local can_zukyoon = Duel.IsExistingMatchingCard(s.spfilter, tp, LOCATION_DECK, 0, 1, nil, CARD_CURE_ZUKYOON, e, tp)
-        local can_kiss    = Duel.IsExistingMatchingCard(s.spfilter, tp, LOCATION_DECK, 0, 1, nil, CARD_CURE_KISS, e, tp)
-        
-        -- Check if at least one valid setup can be executed
-        return (has_purirun and can_zukyoon and Duel.GetLocationCount(tp, LOCATION_MZONE) > 0) or
-               (has_meroron and can_kiss and Duel.GetLocationCount(tp, LOCATION_MZONE) > 0) or
-               (has_purirun and has_meroron and can_zukyoon and can_kiss and Duel.GetLocationCount(tp, LOCATION_MZONE) > 1)
+        return s.checkZukyoon(e, tp) or s.checkKiss(e, tp) or s.checkBoth(e, tp)
     end
-    Duel.SetOperationInfo(0, CATEGORY_TOGRAVE, nil, 1, tp, LOCATION_HAND + LOCATION_MZONE)
-    Duel.SetOperationInfo(0, CATEGORY_SPECIAL_SUMMON, nil, 1, tp, LOCATION_DECK)
+    
+    -- Multi-option menu determination
+    local b1 = s.checkZukyoon(e, tp)
+    local b2 = s.checkKiss(e, tp)
+    local b3 = s.checkBoth(e, tp)
+    
+    local op = Duel.SelectEffect(tp,
+        {b1, aux.Stringid(id, 0)}, -- "Summon Cure Zukyoon"
+        {b2, aux.Stringid(id, 1)}, -- "Summon Cure Kiss"
+        {b3, aux.Stringid(id, 2)}) -- "Summon Both"
+        
+    e:SetLabel(op)
+    
+    Duel.SetOperationInfo(0, CATEGORY_TOGRAVE, nil, (op == 3 and 2 or 1), tp, LOCATION_HAND + LOCATION_MZONE)
+    Duel.SetOperationInfo(0, CATEGORY_SPECIAL_SUMMON, nil, (op == 3 and 2 or 1), tp, LOCATION_HAND + LOCATION_DECK)
 end
 
 function s.activate(e, tp, eg, ep, ev, re, r, rp)
-    local g = Duel.GetMatchingGroup(s.matfilter, tp, LOCATION_HAND + LOCATION_MZONE, 0, nil)
+    local op = e:GetLabel()
     
-    local has_purirun = g:IsExists(Card.IsCode, 1, nil, CARD_PURIRUN)
-    local has_meroron = g:IsExists(Card.IsCode, 1, nil, CARD_MERORON)
-    
-    local can_zukyoon = Duel.IsExistingMatchingCard(s.spfilter, tp, LOCATION_DECK, 0, 1, nil, CARD_CURE_ZUKYOON, e, tp)
-    local can_kiss    = Duel.IsExistingMatchingCard(s.spfilter, tp, LOCATION_DECK, 0, 1, nil, CARD_CURE_KISS, e, tp)
-    
-    -- Determine menu choices depending on what is currently valid
-    local menu = {}
-    local options = {}
-    
-    if has_purirun and can_zukyoon and Duel.GetLocationCount(tp, LOCATION_MZONE) > 0 then
-        table.insert(menu, aux.Stringid(id, 2)) -- Option: Send Purirun -> Summon Cure Zukyoon
-        table.insert(options, 1)
-    end
-    if has_meroron and can_kiss and Duel.GetLocationCount(tp, LOCATION_MZONE) > 0 then
-        table.insert(menu, aux.Stringid(id, 3)) -- Option: Send Meroron -> Summon Cure Kiss
-        table.insert(options, 2)
-    end
-    if has_purirun and has_meroron and can_zukyoon and can_kiss and Duel.GetLocationCount(tp, LOCATION_MZONE) > 1 then
-        table.insert(menu, aux.Stringid(id, 4)) -- Option: Send Both -> Summon Both
-        table.insert(options, 3)
-    end
-    
-    if #options == 0 then return end
-    local choice = options[Duel.SelectOption(tp, table.unpack(menu)) + 1]
-    
-    local mat_g = Group.CreateGroup()
-    
-    if choice == 1 then
-        -- Select 1 Purirun
+    if op == 1 then -- Summon Cure Zukyoon alone
         Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_TOGRAVE)
-        local sg = g:FilterSelect(tp, Card.IsCode, 1, 1, nil, CARD_PURIRUN)
-        mat_g:Merge(sg)
-    elseif choice == 2 then
-        -- Select 1 Meroron
-        Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_TOGRAVE)
-        local sg = g:FilterSelect(tp, Card.IsCode, 1, 1, nil, CARD_MERORON)
-        mat_g:Merge(sg)
-    elseif choice == 3 then
-        -- Select 1 Purirun and 1 Meroron
-        Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_TOGRAVE)
-        local sg1 = g:FilterSelect(tp, Card.IsCode, 1, 1, nil, CARD_PURIRUN)
-        Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_TOGRAVE)
-        local sg2 = g:FilterSelect(tp, Card.IsCode, 1, 1, sg1:GetFirst(), CARD_MERORON)
-        mat_g:Merge(sg1)
-        mat_g:Merge(sg2)
-    end
-    
-    -- Process sending materials and performing the Deck Summons
-    if #mat_g > 0 and Duel.SendtoGrave(mat_g, REASON_EFFECT) > 0 then
-        if choice == 1 or choice == 3 then
-            local sc1 = Duel.GetFirstMatchingCard(s.spfilter, tp, LOCATION_DECK, 0, nil, CARD_CURE_ZUKYOON, e, tp)
-            if sc1 then Duel.SpecialSummonStep(sc1, SUMMON_TYPE_SPECIAL, tp, tp, true, false, LOCATION_MZONE) end
+        local g = Duel.SelectMatchingCard(tp, s.matfilter, tp, LOCATION_HAND + LOCATION_MZONE, 0, 1, 1, nil, CARD_PURIRUN)
+        if #g > 0 and Duel.SendtoGrave(g, REASON_EFFECT) > 0 then
+            Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_SPSUMMON)
+            local sc = Duel.SelectMatchingCard(tp, s.spfilter, tp, LOCATION_HAND + LOCATION_DECK, 0, 1, 1, nil, e, tp, CARD_CURE_ZUKYOON):GetFirst()
+            if sc then
+                Duel.SpecialSummon(sc, SUMMON_TYPE_SPECIAL, tp, tp, true, false, POS_FACEUP)
+            end
         end
-        if choice == 2 or choice == 3 then
-            local sc2 = Duel.GetFirstMatchingCard(s.spfilter, tp, LOCATION_DECK, 0, nil, CARD_CURE_KISS, e, tp)
-            if sc2 then Duel.SpecialSummonStep(sc2, SUMMON_TYPE_SPECIAL, tp, tp, true, false, LOCATION_MZONE) end
+        
+    elseif op == 2 then -- Summon Cure Kiss alone
+        Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_TOGRAVE)
+        local g = Duel.SelectMatchingCard(tp, s.matfilter, tp, LOCATION_HAND + LOCATION_MZONE, 0, 1, 1, nil, CARD_MERORON)
+        if #g > 0 and Duel.SendtoGrave(g, REASON_EFFECT) > 0 then
+            Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_SPSUMMON)
+            local sc = Duel.SelectMatchingCard(tp, s.spfilter, tp, LOCATION_HAND + LOCATION_DECK, 0, 1, 1, nil, e, tp, CARD_CURE_KISS):GetFirst()
+            if sc then
+                Duel.SpecialSummon(sc, SUMMON_TYPE_SPECIAL, tp, tp, true, false, POS_FACEUP)
+            end
         end
-        Duel.SpecialSummonComplete()
+        
+    elseif op == 3 then -- Summon Both
+        Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_TOGRAVE)
+        local g1 = Duel.SelectMatchingCard(tp, s.matfilter, tp, LOCATION_HAND + LOCATION_MZONE, 0, 1, 1, nil, CARD_PURIRUN)
+        Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_TOGRAVE)
+        local g2 = Duel.SelectMatchingCard(tp, s.matfilter, tp, LOCATION_HAND + LOCATION_MZONE, 0, 1, 1, g1:GetFirst(), CARD_MERORON)
+        g1:Merge(g2)
+        
+        if #g1 == 2 and Duel.SendtoGrave(g1, REASON_EFFECT) == 2 then
+            if Duel.GetLocationCount(tp, LOCATION_MZONE) < 2 then return end
+            Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_SPSUMMON)
+            local sc1 = Duel.SelectMatchingCard(tp, s.spfilter, tp, LOCATION_HAND + LOCATION_DECK, 0, 1, 1, nil, e, tp, CARD_CURE_ZUKYOON):GetFirst()
+            Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_SPSUMMON)
+            local sc2 = Duel.SelectMatchingCard(tp, s.spfilter, tp, LOCATION_HAND + LOCATION_DECK, 0, 1, 1, sc1, e, tp, CARD_CURE_KISS):GetFirst()
+            
+            if sc1 and sc2 then
+                Duel.SpecialSummonStep(sc1, SUMMON_TYPE_SPECIAL, tp, tp, true, false, POS_FACEUP)
+                Duel.SpecialSummonStep(sc2, SUMMON_TYPE_SPECIAL, tp, tp, true, false, POS_FACEUP)
+                Duel.SpecialSummonComplete()
+            end
+        end
     end
 end
 
--- E2: Set itself loop logic
+-- Recycling Loop Logic
 function s.setcon(e, tp, eg, ep, ev, re, r, rp)
     return e:GetHandler():IsReason(REASON_EFFECT)
 end
