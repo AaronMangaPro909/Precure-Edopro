@@ -47,9 +47,9 @@ end
 function s.target(e, tp, eg, ep, ev, re, r, rp, chk)
     if chk == 0 then 
         -- Standard check accounting for sending 2 monsters to clear zone spaces
-        local ft = Duel.GetLocationCount(tp, LOCATION_MZONE)
+        local ft = Duel.GetLocationCount(tp, LOCATION_HAND + LOCATION_MZONE)
         if ft < 0 then return false end
-        return Duel.IsExistingMatchingCard(s.tgfilter1, tp, LOCATION_MZONE, 0, 1, nil, tp)
+        return Duel.IsExistingMatchingCard(s.tgfilter1, tp, LOCATION_HAND + LOCATION_MZONE, 0, 1, nil, tp)
             and Duel.IsExistingMatchingCard(s.spfilter1, tp, LOCATION_HAND + LOCATION_DECK, 0, 1, nil, e, tp)
     end
     Duel.SetOperationInfo(0, CATEGORY_TOGRAVE, nil, 2, tp, LOCATION_MZONE)
