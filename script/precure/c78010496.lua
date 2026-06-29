@@ -1,14 +1,13 @@
--- Substitute XXXX with this card's 8-digit ID
+-- Black and White Precure Ribbon
 local s, id = GetID()
 
--- Custom Card ID Configurations
-local CARD_PURIRUN   = 41037083 -- !! CHANGE THIS !!
-local CARD_MERORON   = 5826302 -- !! CHANGE THIS !!
-local CARD_CURE_ZUKYOON   = 19379373 -- !! CHANGE THIS !!
-local CARD_CURE_KISS      = 60519833 -- !! CHANGE THIS !!
+local CARD_PURIRUN   = 41037083
+local CARD_MERORON   = 5826302
+local CARD_CURE_ZUKYOON   = 19379373
+local CARD_CURE_KISS      = 60519833
 
 function s.initial_effect(c)
-    -- Activate: Send Purirun and Meroron to GY -> Special Summon Zukyoon and Kiss
+    
     local e1 = Effect.CreateEffect(c)
     e1:SetCategory(CATEGORY_SPECIAL_SUMMON + CATEGORY_TOGRAVE)
     e1:SetType(EFFECT_TYPE_ACTIVATE)
@@ -17,7 +16,6 @@ function s.initial_effect(c)
     e1:SetOperation(s.activate)
     c:RegisterEffect(e1)
     
-    -- Continuous: If sent to GY by card effect, Set itself
     local e2 = Effect.CreateEffect(c)
     e2:SetDescription(aux.Stringid(id, 1))
     e2:SetType(EFFECT_TYPE_SINGLE + EFFECT_TYPE_TRIGGER_O)
@@ -29,7 +27,6 @@ function s.initial_effect(c)
     c:RegisterEffect(e2)
 end
 
--- E1 Logic
 function s.tgfilter1(c, tp)
     return c:IsCode(CARD_PURIRUN) and c:IsAbleToGrave()
         and Duel.IsExistingMatchingCard(s.tgfilter2, tp, LOCATION_HAND +  LOCATION_MZONE, 0, 1, c)
@@ -46,7 +43,6 @@ function s.spfilter2(c, e, tp)
 end
 function s.target(e, tp, eg, ep, ev, re, r, rp, chk)
     if chk == 0 then 
-        -- Standard check accounting for sending 2 monsters to clear zone spaces
         local ft = Duel.GetLocationCount(tp, LOCATION_HAND + LOCATION_MZONE)
         if ft < 0 then return false end
         return Duel.IsExistingMatchingCard(s.tgfilter1, tp, LOCATION_HAND + LOCATION_MZONE, 0, 1, nil, tp)
@@ -78,7 +74,6 @@ function s.activate(e, tp, eg, ep, ev, re, r, rp)
     end
 end
 
--- E2 Logic
 function s.setcon(e, tp, eg, ep, ev, re, r, rp)
     return e:GetHandler():IsReason(REASON_EFFECT)
 end
