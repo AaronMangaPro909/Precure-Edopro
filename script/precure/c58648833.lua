@@ -1,15 +1,14 @@
--- Substitute XXXX with this card's 8-digit ID
+-- Black Luster Soldier - Grand Prince
 local s, id = GetID()
 
 -- Card IDs
-local CARD_BLS             = 05405694 -- Official Black Luster Soldier ID
-local CARD_CURE_FLORA      = 65935871 -- !! CHANGE THIS !! Replace with Cure Flora's ID
-local CARD_CURE_MERMAID    = 1336311887 -- !! CHANGE THIS !! Replace with Cure Mermaid's ID
-local CARD_CURE_TWINKLE    = 43290246 -- !! CHANGE THIS !! Replace with Cure Twinkle's ID
-local CARD_CURE_SCARLET    = 3325364110 -- !! CHANGE THIS !! Replace with Cure Scarlet's ID
+local CARD_BLS             = 05405694
+local CARD_CURE_FLORA      = 65935871
+local CARD_CURE_MERMAID    = 1336311887
+local CARD_CURE_TWINKLE    = 43290246
+local CARD_CURE_SCARLET    = 3325364110
 
 function s.initial_effect(c)
-    -- Must be Fusion Summoned
     c:EnableReviveLimit()
     Fusion.AddProcMix(c, true, true, CARD_BLS, CARD_CURE_FLORA, CARD_CURE_MERMAID, CARD_CURE_TWINKLE, CARD_CURE_SCARLET)
     
@@ -19,8 +18,7 @@ function s.initial_effect(c)
     e0:SetCode(EFFECT_SPSUMMON_CONDITION)
     e0:SetValue(aux.fuslimit)
     c:RegisterEffect(e0)
-    
-    -- 1. If Special Summoned: Mass Special Summon "Precure of Princess" from GY/Banished
+
     local e1 = Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id, 0))
     e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
@@ -31,7 +29,6 @@ function s.initial_effect(c)
     e1:SetOperation(s.spop)
     c:RegisterEffect(e1)
     
-    -- 2. Battle Phase Quick Effect: Equip up to 4 monsters AND Gain ATK/DEF
     local e2 = Effect.CreateEffect(c)
     e2:SetDescription(aux.Stringid(id, 1))
     e2:SetCategory(CATEGORY_EQUIP)
@@ -39,13 +36,13 @@ function s.initial_effect(c)
     e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
     e2:SetCode(EVENT_FREE_CHAIN)
     e2:SetRange(LOCATION_MZONE)
+    e2:SetCountLimit (1)
     e2:SetHintTiming(TIMING_BATTLE_PHASE, TIMING_BATTLE_PHASE + TIMINGS_CHECK_MONSTER)
     e2:SetCondition(s.eqcon)
     e2:SetTarget(s.eqtg)
     e2:SetOperation(s.eqop)
     c:RegisterEffect(e2)
     
-    -- 3. Quick Effect: Negate Spell/Trap card or effect activation
     local e3 = Effect.CreateEffect(c)
     e3:SetDescription(aux.Stringid(id, 2))
     e3:SetCategory(CATEGORY_NEGATE + CATEGORY_DESTROY)
@@ -60,7 +57,6 @@ function s.initial_effect(c)
     c:RegisterEffect(e3)
 end
 
--- 1. Mass Special Summon Logic
 function s.spfilter(c, e, tp)
     return (c:IsLocation(LOCATION_GRAVE) or c:IsFaceup()) 
         and c:IsSetCard(0xb54) 
@@ -85,7 +81,6 @@ function s.spop(e, tp, eg, ep, ev, re, r, rp)
     end
 end
 
--- 2. Equip + Gain ATK/DEF Logic (Up to 4)
 function s.eqcon(e, tp, eg, ep, ev, re, r, rp)
     return Duel.IsBattlePhase()
 end
@@ -118,14 +113,12 @@ function s.eqop(e, tp, eg, ep, ev, re, r, rp)
     local tc = g:GetFirst()
     while tc do
         if ft > 0 and (tc:IsLocation(LOCATION_GRAVE) or tc:IsFaceup()) then
-            -- Store stat values before equipping in case location change wipes them
             local atk = tc:GetTextAttack()
             local def = tc:GetTextDefense()
             if atk < 0 then atk = 0 end
             if def < 0 then def = 0 end
             
             if Duel.Equip(tp, tc, c, true) then
-                -- Equip Limit Rule Setup
                 local e1 = Effect.CreateEffect(c)
                 e1:SetType(EFFECT_TYPE_SINGLE)
                 e1:SetCode(EFFECT_EQUIP_LIMIT)
@@ -135,7 +128,6 @@ function s.eqop(e, tp, eg, ep, ev, re, r, rp)
                 e1:SetReset(RESET_EVENT + RESETS_STANDARD)
                 tc:RegisterEffect(e1)
                 
-                -- FIXED: Continuous ATK/DEF boost based on equipped card stats
                 local e2 = Effect.CreateEffect(c)
                 e2:SetType(EFFECT_TYPE_EQUIP)
                 e2:SetCode(EFFECT_UPDATE_ATTACK)
@@ -158,7 +150,6 @@ function s.eqlimit(e, c)
     return c == e:GetLabelObject()
 end
 
--- 3. Negate Spell/Trap Logic
 function s.negcon(e, tp, eg, ep, ev, re, r, rp)
     return rp ~= tp and Duel.IsChainNegatable(ev) and re:IsActiveType(TYPE_SPELL + TYPE_TRAP)
 end
