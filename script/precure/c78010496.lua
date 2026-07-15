@@ -7,7 +7,6 @@ local CARD_CURE_ZUKYOON   = 19379373
 local CARD_CURE_KISS      = 60519833
 
 function s.initial_effect(c)
-    
     local e1 = Effect.CreateEffect(c)
     e1:SetCategory(CATEGORY_SPECIAL_SUMMON + CATEGORY_TOGRAVE)
     e1:SetType(EFFECT_TYPE_ACTIVATE)
@@ -29,23 +28,23 @@ end
 
 function s.tgfilter1(c, tp)
     return c:IsCode(CARD_PURIRUN) and c:IsAbleToGrave()
-        and Duel.IsExistingMatchingCard(s.tgfilter2, tp, LOCATION_HAND +  LOCATION_MZONE, 0, 1, c)
+        and Duel.IsExistingMatchingCard(s.tgfilter2, tp, LOCATION_MZONE, 0, 1, c)
 end
 function s.tgfilter2(c)
     return c:IsCode(CARD_MERORON) and c:IsAbleToGrave()
 end
 function s.spfilter1(c, e, tp)
-    return c:IsCode(CARD_CURE_ZUKYOON) and c:IsCanBeSpecialSummoned(e, 0, tp, true, false)
+    return c:IsCode(CARD_CURE_ZUKYOON) and c:IsCanBeSpecialSummoned(e, SUMMON_TYPE_SPECIAL, tp, true, false)
         and Duel.IsExistingMatchingCard(s.spfilter2, tp, LOCATION_HAND + LOCATION_DECK, 0, 1, c, e, tp)
 end
 function s.spfilter2(c, e, tp)
-    return c:IsCode(CARD_CURE_KISS) and c:IsCanBeSpecialSummoned(e, 0, tp, true, false)
+    return c:IsCode(CARD_CURE_KISS) and c:IsCanBeSpecialSummoned(e, SUMMON_TYPE_SPECIAL, tp, true, false)
 end
 function s.target(e, tp, eg, ep, ev, re, r, rp, chk)
     if chk == 0 then 
-        local ft = Duel.GetLocationCount(tp, LOCATION_HAND + LOCATION_MZONE)
+        local ft = Duel.GetLocationCount(tp, LOCATION_MZONE)
         if ft < 0 then return false end
-        return Duel.IsExistingMatchingCard(s.tgfilter1, tp, LOCATION_HAND + LOCATION_MZONE, 0, 1, nil, tp)
+        return Duel.IsExistingMatchingCard(s.tgfilter1, tp, LOCATION_MZONE, 0, 1, nil, tp)
             and Duel.IsExistingMatchingCard(s.spfilter1, tp, LOCATION_HAND + LOCATION_DECK, 0, 1, nil, e, tp)
     end
     Duel.SetOperationInfo(0, CATEGORY_TOGRAVE, nil, 2, tp, LOCATION_MZONE)
@@ -67,8 +66,8 @@ function s.activate(e, tp, eg, ep, ev, re, r, rp)
         local sc2 = Duel.SelectMatchingCard(tp, s.spfilter2, tp, LOCATION_HAND + LOCATION_DECK, 0, 1, 1, sc1, e, tp):GetFirst()
         
         if sc1 and sc2 then
-            Duel.SpecialSummonStep(sc1, 0, tp, tp, true, false, LOCATION_MZONE)
-            Duel.SpecialSummonStep(sc2, 0, tp, tp, true, false, LOCATION_MZONE)
+            Duel.SpecialSummonStep(sc1, SUMMON_TYPE_SPECIAL, tp, tp, true, false, LOCATION_MZONE)
+            Duel.SpecialSummonStep(sc2, SUMMON_TYPE_SPECIAL, tp, tp, true, false, LOCATION_MZONE)
             Duel.SpecialSummonComplete()
         end
     end
