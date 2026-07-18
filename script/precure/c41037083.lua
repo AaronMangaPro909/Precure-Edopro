@@ -1,10 +1,9 @@
+--Purirun
 local s, id = GetID()
 
--- ID Configuration
-local CARD_PRECURE_RIBBON = 11111111 -- Replace with Precure Ribbon's ID
+local CARD_PRECURE_RIBBON = 78010496
 
 function s.initial_effect(c)
-    -- 1. On Summon: Add "Precure Ribbon"
     local e1 = Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id, 0))
     e1:SetCategory(CATEGORY_TOHAND + CATEGORY_SEARCH)
@@ -19,7 +18,6 @@ function s.initial_effect(c)
     e2:SetCode(EVENT_SPSUMMON_SUCCESS)
     c:RegisterEffect(e2)
     
-    -- 2. Special Summon from hand if you control a "Precure" or "Fairy" monster
     local e3 = Effect.CreateEffect(c)
     e3:SetDescription(aux.Stringid(id, 1))
     e3:SetCategory(CATEGORY_SPECIAL_SUMMON)
@@ -32,7 +30,6 @@ function s.initial_effect(c)
     c:RegisterEffect(e3)
 end
 
--- E1/E2 Logic
 function s.thfilter(c)
     return c:IsCode(CARD_PRECURE_RIBBON) and c:IsAbleToHand()
 end
@@ -49,7 +46,6 @@ function s.thop(e, tp, eg, ep, ev, re, r, rp)
     end
 end
 
--- E3 Logic
 function s.cfilter(c)
     return c:IsFaceup() and (c:IsSetCard(0xb54) or c:IsRace(RACE_FAIRY)) -- Change 0x5555 to your archetype hex if "Precure" is a setname string
 end
