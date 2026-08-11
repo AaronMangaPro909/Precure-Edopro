@@ -1,6 +1,8 @@
--- Wink-Eyes Blue Dragon.
+-- Substitute XXXX with this card's 8-digit ID
 local s, id = GetID()
+
 local CARD_CURE_WINK = 21287436
+
 function s.initial_effect(c)
     local e1 = Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id, 0))
@@ -44,30 +46,45 @@ end
 
 s.listed_names = {CARD_CURE_WINK}
 
-function s.spcon(e, c)
+-------------------------------------------------------------------------
+-- SPECIAL SUMMON PROCEDURE (DISCARD 1 CARD)
+-------------------------------------------------------------------------
+function s.hspcon(e, c)
     if c == nil then return true end
     local tp = c:GetControler()
     return Duel.GetLocationCount(tp, LOCATION_MZONE) > 0
         and Duel.IsExistingMatchingCard(Card.IsDiscardable, tp, LOCATION_HAND, 0, 1, c)
 end
 
-function s.sptg(e, tp, eg, ep, ev, re, r, rp, c)
+function s.hsptg(e, tp, eg, ep, ev, re, r, rp, chk, c)
     local g = Duel.GetMatchingGroup(Card.IsDiscardable, tp, LOCATION_HAND, 0, c)
-    local sg = aux.SelectUnselectGroup(g, e, tp, 1, 1, nil, 1, tp, HINTMSG_DISCARD, nil, nil, true)
-    if #sg > 0 then
-        sg:KeepAlive()
-        e:SetLabelObject(sg)
-        return true
+    if #g > 0 then
+        Duel.Hint(HINT_SELECTMSG, tp, HINTMSG_DISCARD)
+        local sg = g:Select(tp, 1, 1, nil)
+        if #sg > 0 then
+            sg:KeepAlive()
+            e:SetLabelObject(sg)
+            return true
+        end
     end
     return false
 end
 
-function s.spop(e, tp, eg, ep, ev, re, r, rp, c)
-    local sg = e:GetLabelObject()
-    if not sg then return end
-    Duel.SendtoGrave(sg, REASON_DISCARD + REASON_COST)
+function s.hspop(e, tp, eg, ep, ev, re, r, rp, c)
+    local g = e:GetLabelObject()
+    if not g then return end
+    Duel.SendtoGrave(g, REASON_COST + REASON_DISCARD)
+    g:DeleteGroup()
 end
 
+function s.tlimit(e, c)
+    -- Requires tributed monsters to be Level 7 or higher
+    return c:IsLevelAbove(7)
+end
+
+-------------------------------------------------------------------------
+-- EQUIP "CURE WINK" ENGINE
+-------------------------------------------------------------------------
 function s.eqfilter(c)
     return c:IsCode(CARD_CURE_WINK) and not c:IsForbidden()
 end
@@ -85,6 +102,55 @@ function s.eqop(e, tp, eg, ep, ev, re, r, rp)
     local g = Duel.SelectMatchingCard(tp, aux.NecroValleyFilter(s.eqfilter), tp, LOCATION_HAND + LOCATION_DECK + LOCATION_GRAVE, 0, 1, 1, nil)
     local tc = g:GetFirst()
     if tc and Duel.Equip(tp, tc, c) then
+        local e1 = Effect.CreateEffect(c)
+        e1:SetType(EFFECT_TYPE_SINGLE)
+        e1:SetCode(EFFECT_EQUIP_LIMIT)
+        e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+        e1:SetValue(s.eqlimit)
+        e1:SetReset(RESET_EVENT + RESETS_STANDARD)
+        tc:RegisterEffect(e1)
+        
+        local e2 = Effect.CreateEffect(c)
+        e2:SetType(EFFECT_TYPE_SINGLE)
+        e2:SetCode(EFFECT_UPDATE_ATTACK)
+        e2:SetValue(300)
+        e2:SetReset(RESET_EVENT + RESETS_STANDARD_DISABLE)
+        c:RegisterEffect(e2)
+    end
+end
+
+function s.eqlimit(e, c)
+    return e:GetOwner() == c
+end
+
+-------------------------------------------------------------------------
+-- NEGATE, DESTROY, & DAMAGE ENGINE (QUICK EFFECT)
+-------------------------------------------------------------------------
+function s.negcon(e, tp, eg, ep, ev, re, r, rp)
+    return rp ~= tp and Duel.IsChainNegatable(ev)
+end
+
+function s.negcost(e, tp, eg, ep, ev, re, r, rp, chk)
+    if chk == 0 then return Duel.IsExistingMatchingCard(Card.IsDiscardable, tp, LOCATION_HAND, 0, 1, nil) end
+    Duel.DiscardHand(tp, Card.IsDiscardable, 1, 1, REASON_COST + REASON_DISCARD)
+end
+
+function s.negtg(e, tp, eg, ep, ev, re, r, rp, chk)
+    if chk == 0 then return true end
+    Duel.SetOperationInfo(0, CATEGORY_NEGATE, eg, 1, 0, 0)
+    if re:GetHandler():IsDestructable() and re:GetHandler():IsRelateToEffect(re) then
+        Duel.SetOperationInfo(0, CATEGORY_DESTROY, eg, 1, 0, 0)
+    end
+    Duel.SetOperationInfo(0, CATEGORY_DAMAGE, nil, 0, 1 - tp, 600)
+end
+
+function s.negop(e, tp, eg, ep, ev, re, r, rp)
+    if Duel.NegateActivation(ev) and re:GetHandler():IsRelateToEffect(re) then
+        if Duel.Destroy(eg, REASON_EFFECT) > 0 then
+            Duel.Damage(1 - tp, 600, REASON_EFFECT)
+        end
+    end
+end
         local e1 = Effect.CreateEffect(c)
         e1:SetType(EFFECT_TYPE_SINGLE)
         e1:SetCode(EFFECT_EQUIP_LIMIT)
