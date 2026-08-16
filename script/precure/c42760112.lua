@@ -1,4 +1,3 @@
--- Substitute XXXX with this card's 8-digit ID
 -- Cure Arcana
 
 local s, id = GetID()
@@ -86,7 +85,8 @@ function s.pencon(e, tp, eg, ep, ev, re, r, rp)
 end
 
 function s.penfilter(c)
-    return (c:IsLocation(LOCATION_HAND) or c:IsLocation(LOCATION_GRAVE))
+    return c:IsSetCard(0xb54)
+        and (c:IsLocation(LOCATION_HAND) or c:IsLocation(LOCATION_GRAVE))
         and (c:IsAbleToDeck() or c:IsAbleToExtra())
 end
 
@@ -117,7 +117,6 @@ function s.penop(e, tp, eg, ep, ev, re, r, rp)
         end
     end
 end
-
 --- Monster Effect code
 
 function s.hspcon(e, c)
