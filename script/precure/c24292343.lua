@@ -51,7 +51,7 @@ end
 function s.efcon(e, tp, eg, ep, ev, re, r, rp)
     local c = e:GetHandler()
     local rc = c:GetReasonCard()
-    return r == REASON_FUSION and rc and rc:IsSetCard(ARCHETYPE_PRECURE) and rc:IsType(TYPE_MONSTER)
+    return r == REASON_FUSION and rc and rc:IsSetCard(0xb54) and rc:IsType(TYPE_MONSTER)
 end
 function s.efop(e, tp, eg, ep, ev, re, r, rp)
     local c = e:GetHandler()
