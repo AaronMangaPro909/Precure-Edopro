@@ -108,7 +108,7 @@ end
 -- EFFECT B: Hand Spell Activation Logic
 -- =========================================================
 function s.actfilter(c, tp)
-    return c:IsSetCard(0x5f1) and c:IsType(TYPE_SPELL) and c:CheckActivateEffect(true, true, false) ~= nil
+    return c:IsSetCard(0xb54) and c:IsType(TYPE_SPELL) and c:CheckActivateEffect(true, true, false) ~= nil
 end
 
 function s.actcon(e, tp, eg, ep, ev, re, r, rp)
