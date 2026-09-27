@@ -1,10 +1,6 @@
+--Purirun 
 local s, id = GetID()
-
--- ID Configuration
-local CARD_PRECURE_RIBBON = 11111111 -- Replace with Precure Ribbon's ID
-
 function s.initial_effect(c)
-    -- 1. On Summon: Add "Precure Ribbon"
     local e1 = Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id, 0))
     e1:SetCategory(CATEGORY_TOHAND + CATEGORY_SEARCH)
@@ -17,8 +13,7 @@ function s.initial_effect(c)
     c:RegisterEffect(e1)
     local e2 = e1:Clone()
     e2:SetCode(EVENT_SPSUMMON_SUCCESS)
-    c:RegisterEffect(e2)
-    
+    c:RegisterEffect(e2)   
     -- 2. Special Summon from hand if you control a "Precure" or "Fairy" monster
     local e3 = Effect.CreateEffect(c)
     e3:SetDescription(aux.Stringid(id, 1))
@@ -32,9 +27,8 @@ function s.initial_effect(c)
     c:RegisterEffect(e3)
 end
 
--- E1/E2 Logic
 function s.thfilter(c)
-    return c:IsCode(CARD_PRECURE_RIBBON) and c:IsAbleToHand()
+    return c:IsSetCard(0x1af4) and c:IsAbleToHand()
 end
 function s.thtg(e, tp, eg, ep, ev, re, r, rp, chk)
     if chk == 0 then return Duel.IsExistingMatchingCard(s.thfilter, tp, LOCATION_DECK, 0, 1, nil) end
@@ -48,10 +42,8 @@ function s.thop(e, tp, eg, ep, ev, re, r, rp)
         Duel.ConfirmCards(1 - tp, g)
     end
 end
-
--- E3 Logic
 function s.cfilter(c)
-    return c:IsFaceup() and (c:IsSetCard(0xb54) or c:IsRace(RACE_FAIRY)) -- Change 0x5555 to your archetype hex if "Precure" is a setname string
+    return c:IsFaceup() and (c:IsSetCard(0xb54) or c:IsRace(RACE_FAIRY))
 end
 function s.spcon(e, tp, eg, ep, ev, re, r, rp)
     return Duel.IsExistingMatchingCard(s.cfilter, tp, LOCATION_MZONE, 0, 1, nil)
