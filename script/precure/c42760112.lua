@@ -1,6 +1,4 @@
--- Substitute XXXX with this card's 8-digit ID
 -- Cure Arcana
-
 local s, id = GetID()
 function s.initial_effect(c)
     Pendulum.AddProcedure(c)
@@ -16,15 +14,7 @@ function s.initial_effect(c)
     e1:SetTarget(s.pentg)
     e1:SetOperation(s.penop)
     c:RegisterEffect(e1)
-
     --- Monster Effect
-    local e0 = Effect.CreateEffect(c)
-    e0:SetType(EFFECT_TYPE_SINGLE)
-    e0:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
-    e0:SetCode(EFFECT_CHANGE_CODE)
-    e0:SetRange(LOCATION_MZONE + LOCATION_GRAVE)
-    e0:SetValue(52303611)
-    c:RegisterEffect(e0)
     local e2 = Effect.CreateEffect(c)
     e2:SetType(EFFECT_TYPE_FIELD)
     e2:SetCode(EFFECT_SPSUMMON_PROC)
@@ -78,7 +68,6 @@ function s.initial_effect(c)
     c:RegisterEffect(e7)
 end
 
-s.listed_names = {52303611}
 
 ---Pendulum Code
 function s.pencon(e, tp, eg, ep, ev, re, r, rp)
