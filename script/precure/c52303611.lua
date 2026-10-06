@@ -1,10 +1,9 @@
+-- Cure Arcana Shadow
 local s, id = GetID()
-
 function s.initial_effect(c)
     -- Pendulum Effect
     Pendulum.AddProcedure(c)
     c:EnableCounterPermit(0x1, LOCATION_PZONE + LOCATION_MZONE)
-  
     local e1 = Effect.CreateEffect(c)
     e1:SetType(EFFECT_TYPE_FIELD + EFFECT_TYPE_CONTINUOUS)
     e1:SetProperty(EFFECT_FLAG_DELAY)
@@ -12,19 +11,24 @@ function s.initial_effect(c)
     e1:SetRange(LOCATION_PZONE)
     e1:SetOperation(s.ctop)
     c:RegisterEffect(e1)
-    
     local e2 = Effect.CreateEffect(c)
     e2:SetDescription(aux.Stringid(id, 0))
     e2:SetType(EFFECT_TYPE_IGNITION)
     e2:SetProperty(EFFECT_FLAG_CARD_TARGET)
     e2:SetRange(LOCATION_PZONE)
     e2:SetCost(s.lvcost)
-    e2:SetCountLimit (4)   
+    e2:SetCountLimit (1)   
     e2:SetTarget(s.lvtg)
     e2:SetOperation(s.lvop)
     c:RegisterEffect(e2)
-    
     -- Monster Effect
+    local e0 = Effect.CreateEffect(c)
+    e0:SetType(EFFECT_TYPE_SINGLE)
+    e0:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+    e0:SetCode(EFFECT_CHANGE_CODE)
+    e0:SetRange(LOCATION_MZONE + LOCATION_GRAVE)
+    e0:SetValue(42760112)
+    c:RegisterEffect(e0)
     local e3 = Effect.CreateEffect(c)
     e3:SetDescription(aux.Stringid(id, 1))
     e3:SetType(EFFECT_TYPE_FIELD)
