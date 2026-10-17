@@ -1,11 +1,17 @@
 -- Cure Spicy Party Up Style
 local s, id = GetID()
-local CARD_CURE_SPICY = 66272315 
-
 function s.initial_effect(c)
     c:EnableReviveLimit()
-    Synchro.AddProcedure(c, aux.FilterBoolFunction(Card.IsCode, CARD_CURE_SPICY), 1, 1, Synchro.NonTuner(nil), 1, 1)
-
+    Synchro.AddProcedure(c, aux.FilterBoolFunction(Card.IsCode, 66272315), 1, 1, Synchro.NonTuner(nil), 1, 1)
+    
+     local e0 = Effect.CreateEffect(c)
+    e0:SetType(EFFECT_TYPE_SINGLE)
+    e0:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+    e0:SetCode(EFFECT_CHANGE_CODE)
+    e0:SetRange(LOCATION_MZONE)
+    e0:SetValue(66272315)
+    c:RegisterEffect(e0)
+    
      local e1 = Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id, 0))
     e1:SetType(EFFECT_TYPE_FIELD + EFFECT_TYPE_TRIGGER_O)
