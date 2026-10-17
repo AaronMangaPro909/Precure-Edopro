@@ -41,7 +41,7 @@ function s.initial_effect(c)
 end
 
 function s.atkfilter(c, h)
-    return c:IsFaceup() and c:IsLevelAbove(4) and c ~= h
+    return c:IsFaceup() and Card.IsLevelBelow(4) and c ~= l
 end
 function s.atktg(e, tp, eg, ep, ev, re, r, rp, chk)
     if chk == 0 then return true end
