@@ -1,8 +1,8 @@
 -- Cure Precious
+-- キュアプレシャ
 local s, id = GetID()
-
-function s.initial_effect(c)
-    
+function s.initial_effect(c)    
+    -- 1. On Normal/Special Summon: Gains ATK equal to the highest ATK among other Level 4 or lower face-up monsters on the field
     local e1 = Effect.CreateEffect(c)
     e1:SetDescription(aux.Stringid(id, 0))
     e1:SetCategory(CATEGORY_ATKCHANGE)
@@ -13,8 +13,8 @@ function s.initial_effect(c)
     c:RegisterEffect(e1)
     local e2 = e1:Clone()
     e2:SetCode(EVENT_SPSUMMON_SUCCESS)
-    c:RegisterEffect(e2)
-    
+    c:RegisterEffect(e2)    
+    -- 2. Standby Phase: Gain 500 LP during your Standby Phase
     local e3 = Effect.CreateEffect(c)
     e3:SetDescription(aux.Stringid(id, 1))
     e3:SetCategory(CATEGORY_RECOVER)
@@ -25,8 +25,8 @@ function s.initial_effect(c)
     e3:SetCondition(s.lpcon)
     e3:SetTarget(s.lptg)
     e3:SetOperation(s.lpop)
-    c:RegisterEffect(e3)
-   
+    c:RegisterEffect(e3)   
+    -- 3. If destroyed and sent to GY: Banish from GY to Special Summon 1 Level 4 or lower "Precure" monster from Hand or Deck
     local e4 = Effect.CreateEffect(c)
     e4:SetDescription(aux.Stringid(id, 2))
     e4:SetCategory(CATEGORY_SPECIAL_SUMMON)
@@ -41,7 +41,7 @@ function s.initial_effect(c)
 end
 
 function s.atkfilter(c, h)
-    return c:IsFaceup() and Card.IsLevelBelow(4) and c ~= l
+    return c:IsFaceup() and c:IsLevelBelow(4) and c ~= handler
 end
 function s.atktg(e, tp, eg, ep, ev, re, r, rp, chk)
     if chk == 0 then return true end
