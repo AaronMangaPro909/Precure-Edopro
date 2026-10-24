@@ -4,7 +4,7 @@ function s.initial_effect(c)
     Pendulum.AddProcedure(c, false)
     c:EnableReviveLimit()
    --- Xyz Material  
-    Xyz.AddProcedure(c, nil, 12, 2)   
+    Xyz.AddProcedure(c,nil,7,2,function(c) return c:IsCode (42760112,52303611)and c:IsType(TYPE_MONSTER, TYPE_FUSION) and c:IsFaceup() end,aux.Stringid(id,0))
     -- Pendulum 
     local e1 = Effect.CreateEffect(c)
     e1:SetType(EFFECT_TYPE_FIELD)
